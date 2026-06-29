@@ -1,6 +1,6 @@
 {
   "name": "tabus-js",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Type-safe cross-tab message bus using BroadcastChannel, with in-memory fallback.",
   "author": "Rody Huancas <rodyhuancas.04@gmail.com>",
   "license": "MIT",
