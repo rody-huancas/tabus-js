@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tabus - Playground</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #0d0d12;
+        --surface: #13131a;
+        --border: #24243a;
+        --muted: #4a4a6a;
+        --text: #e2e2f0;
+        --text-dim: #8888aa;
+        --accent: #7c6cff;
+
+        --c-sent: #3b82f6;
+        --c-received: #22c55e;
+        --c-internal: #f59e0b;
+
+        --radius: 10px;
+        --mono:
+          "Fira Code", "Cascadia Code", "JetBrains Mono", ui-monospace,
+          monospace;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, sans-serif;
+        font-size: 14px;
+        line-height: 1.6;
+        min-height: 100dvh;
+        padding: 24px 16px 48px;
+      }
+
+      .container {
+        max-width: 760px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      /* header */
+      header {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      h1 {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+        color: var(--text);
+      }
+
+      h1 span {
+        color: var(--accent);
+      }
+
+      .tab-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 4px 14px 4px 10px;
+        width: fit-content;
+        font-size: 12px;
+        color: var(--text-dim);
+      }
+
+      .tab-pill .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        flex-shrink: 0;
+        box-shadow: 0 0 6px var(--accent);
+      }
+
+      #tab-id {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--text);
+        user-select: all;
+        cursor: pointer;
+      }
+
+      /* card */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .card-title {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: var(--text-dim);
+      }
+
+      /* actions */
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 16px;
+      }
+
+      button {
+        cursor: pointer;
+        border: none;
+        border-radius: 7px;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 18px;
+        transition:
+          opacity 0.15s,
+          transform 0.1s;
+      }
+
+      button:active {
+        transform: scale(0.97);
+      }
+
+      .btn-logout {
+        background: #ef444420;
+        color: #f87171;
+        border: 1px solid #ef444440;
+      }
+
+      .btn-ping {
+        background: var(--accent) 20;
+        color: #a78bfa;
+        border: 1px solid var(--accent) 40;
+      }
+
+      .btn-clear {
+        background: transparent;
+        color: var(--muted);
+        border: 1px solid var(--border);
+        margin-left: auto;
+      }
+
+      button:hover {
+        opacity: 0.85;
+      }
+
+      /* log */
+      .log-wrap {
+        max-height: 480px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+      }
+
+      .log-empty {
+        padding: 40px 16px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .log-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .log-entry {
+        display: grid;
+        grid-template-columns: auto auto 1fr auto;
+        align-items: baseline;
+        gap: 10px;
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--border);
+        font-family: var(--mono);
+        font-size: 12px;
+        animation: slide-in 0.18s ease;
+      }
+
+      .log-entry:last-child {
+        border-bottom: none;
+      }
+
+      @keyframes slide-in {
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* direction-based left border */
+      .log-entry.sent {
+        border-left: 3px solid var(--c-sent);
+      }
+      .log-entry.received {
+        border-left: 3px solid var(--c-received);
+      }
+      .log-entry.internal {
+        border-left: 3px solid var(--c-internal);
+      }
+
+      .log-ts {
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .log-event {
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .sent .log-event {
+        color: var(--c-sent);
+      }
+      .received .log-event {
+        color: var(--c-received);
+      }
+      .internal .log-event {
+        color: var(--c-internal);
+      }
+
+      .log-payload {
+        color: var(--text-dim);
+        word-break: break-all;
+      }
+
+      .log-badge {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        padding: 2px 6px;
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+
+      .sent .log-badge {
+        background: var(--c-sent) 25;
+        color: var(--c-sent);
+      }
+      .received .log-badge {
+        background: var(--c-received) 25;
+        color: var(--c-received);
+      }
+      .internal .log-badge {
+        background: var(--c-internal) 25;
+        color: var(--c-internal);
+      }
+
+      /* status ───────────────────────────────────────────────── */
+      .status-bar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-top: 1px solid var(--border);
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      #entry-count {
+        font-variant-numeric: tabular-nums;
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="container">
+      <header>
+        <h1><span>tabus</span> playground</h1>
+
+        <div class="tab-pill">
+          <span class="dot"></span>
+          This tab &nbsp;·&nbsp; <code id="tab-id">loading…</code>
+        </div>
+      </header>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Emit an event</span>
+        </div>
+
+        <div class="actions">
+          <button class="btn-logout" id="btn-logout">⬆ Emit logout</button>
+          <button class="btn-ping" id="btn-ping">⬆ Emit ping</button>
+          <button class="btn-clear" id="btn-clear">Clear log</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Message log</span>
+        </div>
+
+        <div class="log-wrap" id="log-wrap">
+          <p class="log-empty" id="empty-hint">
+            No messages yet — open this page in another tab and click a button.
+          </p>
+
+          <ul class="log-list" id="log"></ul>
+        </div>
+
+        <div class="status-bar"><span id="entry-count">0</span> entries</div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { Tabus } from "../dist/index.mjs";
+
+      // instance
+      const bus = new Tabus("demo");
+      document.getElementById("tab-id").textContent = bus.tabId;
+
+      // log helpers
+      let count = 0;
+
+      function now() {
+        const d  = new Date();
+        const hh = String(d.getHours()).padStart(2, "0");
+        const mm = String(d.getMinutes()).padStart(2, "0");
+        const ss = String(d.getSeconds()).padStart(2, "0");
+        const ms = String(d.getMilliseconds()).padStart(3, "0");
+
+        return `${hh}:${mm}:${ss}.${ms}`;
+      }
+
+      function addEntry(direction, event, payload) {
+        document.getElementById("empty-hint").style.display = "none";
+
+        const li           = document.createElement("li");
+              li.className = `log-entry ${direction}`;
+
+        const ts             = document.createElement("span");
+              ts.className   = "log-ts";
+              ts.textContent = now();
+
+        const evEl             = document.createElement("span");
+              evEl.className   = "log-event";
+              evEl.textContent = event;
+
+        const payEl             = document.createElement("span");
+              payEl.className   = "log-payload";
+              payEl.textContent = JSON.stringify(payload);
+
+        const badge             = document.createElement("span");
+              badge.className   = "log-badge";
+              badge.textContent =  direction === "sent" ? "sent" : direction === "received" ? "recv" : "sys";
+
+        li.append(ts, evEl, payEl, badge);
+
+        const list = document.getElementById("log");
+        list.prepend(li);
+
+        count++;
+        document.getElementById("entry-count").textContent = count;
+      }
+
+      // subscriptions
+      bus.on("logout"   , (p) => addEntry("received", "logout"   , p));
+      bus.on("ping"     , (p) => addEntry("received", "ping"     , p));
+      bus.on("tab:join" , (p) => addEntry("internal", "tab:join" , p));
+      bus.on("tab:leave", (p) => addEntry("internal", "tab:leave", p));
+
+      // buttons
+      document.getElementById("btn-logout").addEventListener("click", () => {
+        const payload = { userId: 42 };
+
+        bus.emit("logout", payload);
+        addEntry("sent", "logout", payload);
+      });
+
+      document.getElementById("btn-ping").addEventListener("click", () => {
+        const payload = { ts: Date.now() };
+
+        bus.emit("ping", payload);
+        addEntry("sent", "ping", payload);
+      });
+
+      document.getElementById("btn-clear").addEventListener("click", () => {
+        document.getElementById("log").innerHTML = "";
+        document.getElementById("empty-hint").style.display = "";
+
+        count = 0;
+        
+        document.getElementById("entry-count").textContent = "0";
+      });
+
+      // cleanup
+      window.addEventListener("beforeunload", () => bus.destroy());
+    </script>
+  </body>
+</html>

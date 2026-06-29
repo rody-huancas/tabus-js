@@ -1,7 +1,26 @@
 {
   "name": "tabus",
   "version": "0.1.0",
-  "description": "Type-safe cross-tab event bus with BroadcastChannel and in-memory fallback",
+  "description": "Type-safe cross-tab message bus using BroadcastChannel, with in-memory fallback.",
+  "author": "Rody Huancas <rodyhuancas.04@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/rody-huancas/tabus#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rody-huancas/tabus.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rody-huancas/tabus/issues"
+  },
+  "keywords": [
+    "broadcast",
+    "tab",
+    "cross-tab",
+    "BroadcastChannel",
+    "sync",
+    "message-bus",
+    "typescript"
+  ],
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -13,25 +32,25 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
   ],
-  "sideEffects": false,
   "scripts": {
     "build": "tsup",
+    "dev": "tsup --watch",
     "test": "vitest run",
-    "dev": "tsup --watch"
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "pnpm run lint && pnpm run test && pnpm run build"
   },
   "devDependencies": {
-    "tsup": "^8.4.0",
-    "typescript": "^5.8.0",
-    "vitest": "^3.2.0"
+    "typescript": "^5.4.0",
+    "tsup": "^8.0.0",
+    "vitest": "^3.0.0"
   },
-  "keywords": [
-    "broadcast-channel",
-    "event-bus",
-    "cross-tab",
-    "typescript",
-    "pubsub"
-  ],
-  "license": "MIT"
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false
 }
