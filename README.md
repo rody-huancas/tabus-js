@@ -1,8 +1,8 @@
-<div align="center">
-  <img src="./public/tabus-logo.png" alt="tabus" width="200" />
-</div>
+# tabus-js
 
-# tabus
+<div align="center">
+  <img src="./public/tabus-logo.png" alt="tabus-js" width="250" />
+</div>
 
 > Type-safe cross-tab message bus for the browser, built on the native `BroadcastChannel` API.
 
@@ -13,7 +13,7 @@
 ## Why
 
 When a user signs out in one tab, other open tabs keep showing sensitive data.  
-`tabus` solves this by letting tabs broadcast events to each other instantly — no server, no WebSockets, no polling.
+`tabus-js` solves this by letting tabs broadcast events to each other instantly — no server, no WebSockets, no polling.
 
 ## Install
 
@@ -22,6 +22,23 @@ npm install tabus-js
 # or
 pnpm add tabus-js
 ```
+
+## Framework compatibility
+
+`tabus-js` is framework-agnostic. It works in any environment that runs JavaScript in the browser.
+
+| Environment           | Supported   |
+| --------------------- | ----------- |
+| Vanilla JS            | ✅          |
+| React                 | ✅          |
+| Vue                   | ✅          |
+| Angular               | ✅          |
+| Svelte                | ✅          |
+| Next.js (client only) | ✅          |
+| Nuxt (client only)    | ✅          |
+| Node.js / SSR         | ⚠️ fallback |
+
+> **SSR note:** `BroadcastChannel` is a browser API — it does not exist on the server. In SSR environments (Next.js, Nuxt, SvelteKit), create the `Tabus` instance only on the client side. If `BroadcastChannel` is unavailable, `tabus-js` falls back to an in-memory bus automatically and emits a `console.warn`.
 
 ## Quick start
 
@@ -46,6 +63,171 @@ bus.emit("logout", { userId: 42 });
 
 // Clean up
 bus.destroy();
+```
+
+## Examples
+
+### Vanilla JS
+
+```js
+import { Tabus } from "tabus-js";
+
+const bus = new Tabus("my-app");
+
+bus.on("notification", ({ message }) => {
+  alert(message);
+});
+
+document.querySelector("#btn").addEventListener("click", () => {
+  bus.emit("notification", { message: "Hello from this tab!" });
+});
+```
+
+### React
+
+```tsx
+import { useEffect } from "react";
+import { Tabus } from "tabus-js";
+
+type AppEvents = {
+  logout: { userId: number };
+};
+
+const bus = new Tabus<AppEvents>("my-app");
+
+function App() {
+  useEffect(() => {
+    const handler = ({ userId }: { userId: number }) => {
+      console.log("Logged out:", userId);
+      redirectToLogin();
+    };
+
+    bus.on("logout", handler);
+    return () => bus.off("logout", handler);
+  }, []);
+
+  const handleLogout = () => {
+    bus.emit("logout", { userId: 42 });
+  };
+
+  return <button onClick={handleLogout}>Logout</button>;
+}
+```
+
+### Vue
+
+```vue
+<script setup lang="ts">
+import { onMounted, onUnmounted } from "vue";
+import { Tabus } from "tabus-js";
+
+type AppEvents = {
+  logout: { userId: number };
+};
+
+const bus = new Tabus<AppEvents>("my-app");
+
+const handler = ({ userId }: { userId: number }) => {
+  console.log("Logged out:", userId);
+  redirectToLogin();
+};
+
+onMounted(() => bus.on("logout", handler));
+onUnmounted(() => bus.off("logout", handler));
+
+const handleLogout = () => bus.emit("logout", { userId: 42 });
+</script>
+
+<template>
+  <button @click="handleLogout">Logout</button>
+</template>
+```
+
+### Next.js (client only)
+
+```tsx
+"use client";
+
+import { useEffect } from "react";
+import { Tabus } from "tabus-js";
+
+type AppEvents = {
+  logout: { userId: number };
+};
+
+// Create outside the component to share across renders
+const bus = new Tabus<AppEvents>("my-app");
+
+export function LogoutButton() {
+  useEffect(() => {
+    const handler = ({ userId }: { userId: number }) => {
+      redirectToLogin();
+    };
+
+    bus.on("logout", handler);
+    return () => bus.off("logout", handler);
+  }, []);
+
+  return (
+    <button onClick={() => bus.emit("logout", { userId: 42 })}>Logout</button>
+  );
+}
+```
+
+### Real-world: sync logout across tabs
+
+```ts
+import { Tabus } from "tabus-js";
+
+type AuthEvents = {
+  logout: { userId: number };
+  sessionExpired: { reason: string };
+};
+
+const auth = new Tabus<AuthEvents>("auth");
+
+// In your auth service
+auth.on("logout", () => {
+  clearLocalStorage();
+  redirectToLogin();
+});
+
+auth.on("sessionExpired", ({ reason }) => {
+  showToast(`Session expired: ${reason}`);
+  redirectToLogin();
+});
+
+// When the user clicks logout
+function logout(userId: number) {
+  auth.emit("logout", { userId });
+}
+```
+
+### Real-world: sync cart across tabs
+
+```ts
+import { Tabus } from "tabus-js";
+
+type CartEvents = {
+  itemAdded: { productId: string; qty: number };
+  itemRemoved: { productId: string };
+  cleared: Record<string, never>;
+};
+
+const cart = new Tabus<CartEvents>("cart");
+
+cart.on("itemAdded", ({ productId, qty }) => {
+  updateCartUI(productId, qty);
+});
+
+cart.on("cleared", () => {
+  resetCartUI();
+});
+
+// When user adds an item
+function addToCart(productId: string, qty: number) {
+  cart.emit("itemAdded", { productId, qty });
+}
 ```
 
 ## API
@@ -88,7 +270,7 @@ These are emitted automatically — you cannot emit them manually.
 
 ## Fallback
 
-If `BroadcastChannel` is not available (old browsers, some WebViews), `tabus` falls back to an in-memory bus automatically. Events will still work within the same tab. A `console.warn` is emitted once per channel to notify you.
+If `BroadcastChannel` is not available (old browsers, some WebViews, SSR), `tabus-js` falls back to an in-memory bus automatically. Events will still work within the same tab. A `console.warn` is emitted once per channel to notify you.
 
 ## Browser support
 
