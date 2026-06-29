@@ -1,13 +1,13 @@
 {
-  "name": "tabus",
-  "version": "0.1.0",
+  "name": "tabus-js",
+  "version": "0.1.1",
   "description": "Type-safe cross-tab message bus using BroadcastChannel, with in-memory fallback.",
   "author": "Rody Huancas <rodyhuancas.04@gmail.com>",
   "license": "MIT",
   "homepage": "https://github.com/rody-huancas/tabus#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rody-huancas/tabus.git"
+    "url": "git+https://github.com/rody-huancas/tabus.git"
   },
   "bugs": {
     "url": "https://github.com/rody-huancas/tabus/issues"

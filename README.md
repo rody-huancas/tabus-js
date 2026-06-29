@@ -1,14 +1,14 @@
 <div align="center">
-  <img src="./public/tabus-logo.png" alt="tabus" width="120" />
+  <img src="./public/tabus-logo.png" alt="tabus" width="200" />
 </div>
 
 # tabus
 
 > Type-safe cross-tab message bus for the browser, built on the native `BroadcastChannel` API.
 
-[![npm](https://img.shields.io/npm/v/tabus)](https://www.npmjs.com/package/tabus)
-[![license](https://img.shields.io/npm/l/tabus)](./LICENSE)
-[![types](https://img.shields.io/npm/types/tabus)](./src/core/types.ts)
+[![npm](https://img.shields.io/npm/v/tabus-js)](https://www.npmjs.com/package/tabus-js)
+[![license](https://img.shields.io/npm/l/tabus-js)](./LICENSE)
+[![types](https://img.shields.io/npm/types/tabus-js)](./src/core/types.ts)
 
 ## Why
 
@@ -18,15 +18,15 @@ When a user signs out in one tab, other open tabs keep showing sensitive data.
 ## Install
 
 ```bash
-npm install tabus
+npm install tabus-js
 # or
-pnpm add tabus
+pnpm add tabus-js
 ```
 
 ## Quick start
 
 ```ts
-import { Tabus } from "tabus";
+import { Tabus } from "tabus-js";
 
 type MyEvents = {
   logout: { userId: number };
