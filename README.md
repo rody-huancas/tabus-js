@@ -18,15 +18,15 @@ When a user signs out in one tab, other open tabs keep showing sensitive data.
 ## Install
 
 ```bash
-npm install tabus
+npm install @rody-huancas/tabus
 # or
-pnpm add tabus
+pnpm add @rody-huancas/tabus
 ```
 
 ## Quick start
 
 ```ts
-import { Tabus } from "tabus";
+import { Tabus } from "@rody-huancas/tabus";
 
 type MyEvents = {
   logout: { userId: number };
