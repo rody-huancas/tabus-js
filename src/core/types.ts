@@ -1,5 +1,19 @@
 export type Handler<T = unknown> = (payload: T) => void;
 
+export interface TabusOptions {
+  /**
+   * Minimum time in milliseconds between emitted messages.
+   * When set, emit() calls that arrive faster than this interval
+   * are discarded. Useful for high-frequency events like mousemove
+   * or scroll to prevent flooding the main thread.
+   *
+   * @example
+   * // Allow at most one message every 16ms (~60fps)
+   * const bus = new Tabus('canvas', { throttle: 16 })
+   */
+  throttle?: number;
+}
+
 export type EventMap = Record<string, unknown>;
 
 export interface TabusMessage<T = unknown> {
