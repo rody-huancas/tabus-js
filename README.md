@@ -259,6 +259,29 @@ Closes the channel, emits `tab:leave`, and removes all handlers. Safe to call mu
 
 A unique UUID identifying this tab instance. Read-only.
 
+## Throttle
+
+Limit how often messages are sent to the channel. Useful for high-frequency 
+events like `mousemove`, `scroll`, or real-time input sync.
+
+```ts
+// Allow at most one message every 16ms (~60fps)
+const bus = new Tabus('canvas', { throttle: 16 })
+
+window.addEventListener('mousemove', (e) => {
+  bus.emit('cursor:moved', { x: e.clientX, y: e.clientY })
+  // Without throttle: 60 messages/sec per tab
+  // With throttle:    1 message every 16ms, rest discarded
+})
+```
+
+Without throttle (default), every `emit()` call sends immediately.
+With throttle, calls that arrive faster than `throttleMs` are silently discarded.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `throttle` | `number` | `0` | Minimum ms between emitted messages. `0` = no throttle. |
+
 ## Lifecycle events
 
 ```ts

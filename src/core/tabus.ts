@@ -2,7 +2,7 @@ import { generateId } from "./generate-id";
 import { MemoryTransport } from "../transport/memory.transport";
 import { BroadcastTransport } from "../transport/broadcast.transport";
 import type { ITransport } from "../transport/transport.interface";
-import type { Handler, EventMap, TabusMessage, FullEventMap } from "./types";
+import type { Handler, EventMap, TabusMessage, FullEventMap, TabusOptions } from "./types";
 
 export class Tabus<Events extends EventMap = EventMap> {
   /**
@@ -21,6 +21,8 @@ export class Tabus<Events extends EventMap = EventMap> {
   private readonly localHandlers = new Map<string, Set<Handler>>();
   private destroyed = false;
   private joinTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly throttleMs: number;
+  private lastEmitAt = 0;
 
   /**
    * Creates a new Tabus instance on the given channel.
@@ -33,6 +35,8 @@ export class Tabus<Events extends EventMap = EventMap> {
    *
    * @param channelName - Shared channel name (default: `"tabus"`). All
    *   instances with the same channel name can communicate with each other.
+   * @param options - Configuration options for this instance.
+   * @param options.throttle - Minimum ms between emitted messages (default: 0, no throttle).
    *
    * @example
    * ```ts
@@ -41,8 +45,9 @@ export class Tabus<Events extends EventMap = EventMap> {
    * bus.on("tab:join", ({ tabId }) => console.log("peer joined:", tabId));
    * ```
    */
-  constructor(channelName?: string) {
+  constructor(channelName?: string, options?: TabusOptions) {
     this.tabId = generateId();
+    this.throttleMs = options?.throttle ?? 0;
     const name = channelName ?? "tabus";
 
     this.transport = typeof BroadcastChannel !== "undefined" ? new BroadcastTransport(name) : new MemoryTransport(name);
@@ -139,6 +144,13 @@ export class Tabus<Events extends EventMap = EventMap> {
    */
   emit<K extends keyof Events>(event: K, payload: Events[K]): this {
     if (this.destroyed) return this;
+
+    if (this.throttleMs > 0) {
+      const now = Date.now();
+      if (now - this.lastEmitAt < this.throttleMs) return this;
+      this.lastEmitAt = now;
+    }
+
     this.transport.send({ tabId: this.tabId, event: String(event), payload });
     return this;
   }

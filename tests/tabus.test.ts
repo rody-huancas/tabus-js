@@ -298,3 +298,74 @@ describe("Tabus – BroadcastChannel mode", () => {
     expect(closeSpy).toHaveBeenCalledOnce();
   });
 });
+
+// throttle option
+
+describe("Tabus – throttle option", () => {
+  let a: Tabus<TestEvents>;
+  let b: Tabus<TestEvents>;
+
+  beforeEach(() => {
+    vi.stubGlobal("BroadcastChannel", undefined);
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    a?.destroy();
+    b?.destroy();
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it("emits the first message immediately", () => {
+    a = new Tabus<TestEvents>("ch", { throttle: 100 });
+    b = new Tabus<TestEvents>("ch");
+
+    const received: number[] = [];
+    b.on("count", (p) => received.push(p));
+    a.emit("count", 1);
+
+    expect(received).toEqual([1]);
+  });
+
+  it("discards messages emitted within the throttle window", () => {
+    a = new Tabus<TestEvents>("ch", { throttle: 100 });
+    b = new Tabus<TestEvents>("ch");
+
+    const received: number[] = [];
+    b.on("count", (p) => received.push(p));
+
+    a.emit("count", 1);
+    a.emit("count", 2); // within throttle window — discarded
+
+    expect(received).toEqual([1]);
+  });
+
+  it("allows a second message after the throttle window", () => {
+    a = new Tabus<TestEvents>("ch", { throttle: 100 });
+    b = new Tabus<TestEvents>("ch");
+
+    const received: number[] = [];
+    b.on("count", (p) => received.push(p));
+
+    a.emit("count", 1);
+    vi.advanceTimersByTime(101); // past the throttle window
+    a.emit("count", 2);
+
+    expect(received).toEqual([1, 2]);
+  });
+
+  it("does not throttle when option is not set", () => {
+    a = new Tabus<TestEvents>("ch");
+    b = new Tabus<TestEvents>("ch");
+
+    const received: number[] = [];
+    b.on("count", (p) => received.push(p));
+
+    a.emit("count", 1);
+    a.emit("count", 2);
+    a.emit("count", 3);
+
+    expect(received).toEqual([1, 2, 3]);
+  });
+});
