@@ -43,7 +43,13 @@
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
     "prepublishOnly": "pnpm run lint && pnpm run test && pnpm run build",
-    "prepare": "husky"
+    "prepare": "husky",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
   },
   "devDependencies": {
     "@commitlint/cli": "^21.1.0",
@@ -51,10 +57,12 @@
     "husky": "^9.1.7",
     "tsup": "^8.0.0",
     "typescript": "^5.4.0",
+    "vitepress": "^1.6.4",
     "vitest": "^3.0.0"
   },
   "engines": {
     "node": ">=18"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "type": "module"
 }
