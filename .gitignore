@@ -3,3 +3,9 @@ dist/
 *.log
 .DS_Store
 coverage/
+
+# APP
+docs/.vitepress/cache
+
+# AI
+CLAUDE.md
