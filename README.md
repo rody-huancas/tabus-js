@@ -10,6 +10,8 @@
 [![license](https://img.shields.io/npm/l/tabus-js)](./LICENSE)
 [![types](https://img.shields.io/npm/types/tabus-js)](./src/core/types.ts)
 
+📖 **[Documentation](https://rody-huancas.github.io/tabus-js/)** — Full docs, examples, and API reference.
+
 ## Why
 
 When a user signs out in one tab, other open tabs keep showing sensitive data.  
