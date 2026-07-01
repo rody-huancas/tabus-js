@@ -1,6 +1,6 @@
 {
   "name": "tabus-js",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Type-safe cross-tab message bus using BroadcastChannel, with in-memory fallback.",
   "author": "Rody Huancas <rodyhuancas.04@gmail.com>",
   "license": "MIT",
@@ -49,7 +49,9 @@
     "docs:preview": "vitepress preview docs"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   },
   "devDependencies": {
     "@commitlint/cli": "^21.1.0",
