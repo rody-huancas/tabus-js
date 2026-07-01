@@ -57,7 +57,7 @@ jobs:
           git add package.json
           git commit -m "chore: release v$VERSION"
           git tag "v$VERSION"
-          git push origin master --follow-tags
+          git push origin master --follow-tags --force-with-lease
 
       - name: Publish to npm
         run: npm publish
