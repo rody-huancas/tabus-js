@@ -3,8 +3,8 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title      : "tabus-js",
   description: "Type-safe cross-tab message bus for the browser",
-  base       : "/tabus/",
-  head       : [["link", { rel: "icon", href: "/tabus/logo.png" }]],
+  base       : "/tabus-js/",
+  head       : [["link", { rel: "icon", href: "/tabus-js/logo.png" }]],
   themeConfig: {
     logo     : "/logo.png",
     siteTitle: false,
