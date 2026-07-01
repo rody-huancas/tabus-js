@@ -1,0 +1,10 @@
+branch=$(git symbolic-ref HEAD | sed 's|refs/heads/||')
+pattern='^(feat|fix|docs|chore|refactor|test|ci|release)\/.+'
+if [ "$branch" = "master" ] || [ "$branch" = "develop" ]; then
+  exit 0
+fi
+if ! echo "$branch" | grep -qE "$pattern"; then
+  echo "[tabus] Branch name '$branch' does not follow the convention."
+  echo "[tabus] Use: feat/, fix/, docs/, chore/, refactor/, test/, ci/, release/"
+  exit 1
+fi
