@@ -368,4 +368,69 @@ describe("Tabus – throttle option", () => {
 
     expect(received).toEqual([1, 2, 3]);
   });
+
+  it("emits trailing message after throttle window expires", () => {
+    a = new Tabus<TestEvents>("ch", { throttle: 100 });
+    b = new Tabus<TestEvents>("ch");
+
+    const received: number[] = [];
+    b.on("count", (p) => received.push(p));
+
+    a.emit("count", 1); // leading
+    a.emit("count", 2); // pending — held for trailing edge
+
+    expect(received).toEqual([1]);
+
+    vi.advanceTimersByTime(100); // window expires — trailing fires
+
+    expect(received).toEqual([1, 2]);
+  });
+
+  it("replaces pending trailing message with the latest one", () => {
+    a = new Tabus<TestEvents>("ch", { throttle: 100 });
+    b = new Tabus<TestEvents>("ch");
+
+    const received: number[] = [];
+    b.on("count", (p) => received.push(p));
+
+    a.emit("count", 1); // leading
+    a.emit("count", 2); // pending
+    a.emit("count", 3); // replaces the pending message
+
+    vi.advanceTimersByTime(100);
+
+    expect(received).toEqual([1, 3]);
+  });
+
+  it("does not emit trailing when trailing: false", () => {
+    a = new Tabus<TestEvents>("ch", { throttle: 100, trailing: false });
+    b = new Tabus<TestEvents>("ch");
+
+    const received: number[] = [];
+    b.on("count", (p) => received.push(p));
+
+    a.emit("count", 1); // leading
+    a.emit("count", 2); // discarded — no trailing edge
+
+    vi.advanceTimersByTime(100);
+
+    expect(received).toEqual([1]);
+  });
+
+  it("cleans up trailing timer on destroy()", () => {
+    a = new Tabus<TestEvents>("ch", { throttle: 100 });
+    b = new Tabus<TestEvents>("ch");
+
+    const received: number[] = [];
+    b.on("count", (p) => received.push(p));
+
+    a.emit("count", 1); // leading
+    a.emit("count", 2); // pending
+
+    a.destroy(); // must cancel the pending trailing timer
+
+    vi.advanceTimersByTime(100);
+
+    expect(received).toEqual([1]);
+  });
 });
