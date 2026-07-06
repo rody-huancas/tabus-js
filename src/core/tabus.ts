@@ -23,6 +23,9 @@ export class Tabus<Events extends EventMap = EventMap> {
   private joinTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly throttleMs: number;
   private lastEmitAt = 0;
+  private readonly trailingEdge: boolean;
+  private trailingTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingMsg: { event: string; payload: unknown } | null = null;
 
   /**
    * Creates a new Tabus instance on the given channel.
@@ -37,6 +40,9 @@ export class Tabus<Events extends EventMap = EventMap> {
    *   instances with the same channel name can communicate with each other.
    * @param options - Configuration options for this instance.
    * @param options.throttle - Minimum ms between emitted messages (default: 0, no throttle).
+   * @param options.trailing - When true (default), the last message
+   *   received within a throttle window is emitted after the window
+   *   expires. Set to false for leading-only throttle.
    *
    * @example
    * ```ts
@@ -48,6 +54,7 @@ export class Tabus<Events extends EventMap = EventMap> {
   constructor(channelName?: string, options?: TabusOptions) {
     this.tabId = generateId();
     this.throttleMs = options?.throttle ?? 0;
+    this.trailingEdge = options?.trailing ?? true;
     const name = channelName ?? "tabus";
 
     this.transport = typeof BroadcastChannel !== "undefined" ? new BroadcastTransport(name) : new MemoryTransport(name);
@@ -147,8 +154,37 @@ export class Tabus<Events extends EventMap = EventMap> {
 
     if (this.throttleMs > 0) {
       const now = Date.now();
-      if (now - this.lastEmitAt < this.throttleMs) return this;
-      this.lastEmitAt = now;
+      const elapsed = now - this.lastEmitAt;
+
+      if (elapsed >= this.throttleMs) {
+        // Leading edge: emite inmediatamente
+        this.lastEmitAt = now;
+        this.transport.send({ tabId: this.tabId, event: String(event), payload });
+      } else if (this.trailingEdge) {
+        // Dentro de la ventana: guarda el último mensaje pendiente
+        this.pendingMsg = { event: String(event), payload };
+
+        // Cancela el timer anterior si existe
+        if (this.trailingTimer !== null) {
+          clearTimeout(this.trailingTimer);
+        }
+
+        // Programa el trailing emit para cuando expire la ventana
+        this.trailingTimer = setTimeout(() => {
+          this.trailingTimer = null;
+          if (this.pendingMsg && !this.destroyed) {
+            this.lastEmitAt = Date.now();
+            this.transport.send({
+              tabId  : this.tabId,
+              event  : this.pendingMsg.event,
+              payload: this.pendingMsg.payload,
+            });
+            this.pendingMsg = null;
+          }
+        }, this.throttleMs - elapsed);
+      }
+      // Si trailing es false, descarta silenciosamente
+      return this;
     }
 
     this.transport.send({ tabId: this.tabId, event: String(event), payload });
@@ -184,6 +220,12 @@ export class Tabus<Events extends EventMap = EventMap> {
         event  : "tab:leave",
         payload: { tabId: this.tabId },
       });
+    }
+
+    if (this.trailingTimer !== null) {
+      clearTimeout(this.trailingTimer);
+      this.trailingTimer = null;
+      this.pendingMsg = null;
     }
 
     this.transport.destroy();
