@@ -4,14 +4,26 @@ export interface TabusOptions {
   /**
    * Minimum time in milliseconds between emitted messages.
    * When set, emit() calls that arrive faster than this interval
-   * are discarded. Useful for high-frequency events like mousemove
-   * or scroll to prevent flooding the main thread.
+   * are throttled using a leading + trailing edge strategy:
+   * the first call fires immediately, subsequent calls within
+   * the window are held, and the last one fires when the window expires.
    *
    * @example
-   * // Allow at most one message every 16ms (~60fps)
    * const bus = new Tabus('canvas', { throttle: 16 })
    */
   throttle?: number;
+
+  /**
+   * When true (default), emits the last pending message after
+   * the throttle window expires (trailing edge).
+   * When false, only the leading edge fires and intermediate
+   * messages are silently discarded.
+   *
+   * Only relevant when `throttle` is set.
+   *
+   * @default true
+   */
+  trailing?: boolean;
 }
 
 export type EventMap = Record<string, unknown>;

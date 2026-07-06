@@ -10,20 +10,32 @@
 [![license](https://img.shields.io/npm/l/tabus-js)](./LICENSE)
 [![types](https://img.shields.io/npm/types/tabus-js)](./src/core/types.ts)
 
-📖 **[Documentation](https://rody-huancas.github.io/tabus-js/)** — Full docs, examples, and API reference.
+📖 **[Documentation](https://tabus-js.vercel.app/)** — Full docs, examples, and API reference.
 
 ## Why
 
 When a user signs out in one tab, other open tabs keep showing sensitive data.  
 `tabus-js` solves this by letting tabs broadcast events to each other instantly — no server, no WebSockets, no polling.
 
-## Install
+
+## Installation
+
+Install **tabus-js** using your preferred package manager.
 
 ```bash
+# npm
 npm install tabus-js
-# or
+
+# pnpm
 pnpm add tabus-js
+
+# yarn
+yarn add tabus-js
+
+# bun
+bun add tabus-js
 ```
+
 
 ## Framework compatibility
 
@@ -263,26 +275,31 @@ A unique UUID identifying this tab instance. Read-only.
 
 ## Throttle
 
-Limit how often messages are sent to the channel. Useful for high-frequency 
-events like `mousemove`, `scroll`, or real-time input sync.
+Limit how often messages are sent to the channel. Useful for
+high-frequency events like `mousemove`, `scroll`, or real-time
+input sync.
 
 ```ts
-// Allow at most one message every 16ms (~60fps)
+// Leading + trailing (default): first and last events always arrive
 const bus = new Tabus('canvas', { throttle: 16 })
+
+// Leading only: first event arrives, intermediates discarded
+const bus = new Tabus('canvas', { throttle: 16, trailing: false })
 
 window.addEventListener('mousemove', (e) => {
   bus.emit('cursor:moved', { x: e.clientX, y: e.clientY })
-  // Without throttle: 60 messages/sec per tab
-  // With throttle:    1 message every 16ms, rest discarded
 })
 ```
 
-Without throttle (default), every `emit()` call sends immediately.
-With throttle, calls that arrive faster than `throttleMs` are silently discarded.
+**Leading edge:** the first call in a throttle window fires immediately.
+**Trailing edge:** if more calls arrive within the window, the last
+one fires when the window expires — guaranteeing the final state
+always reaches other tabs.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `throttle` | `number` | `0` | Minimum ms between emitted messages. `0` = no throttle. |
+| `throttle` | `number` | `0` | Minimum ms between emitted messages. |
+| `trailing` | `boolean` | `true` | Emit the last pending message after the window expires. |
 
 ## Lifecycle events
 
